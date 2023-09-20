@@ -41,8 +41,8 @@ struct Medico
 
 struct ConsultaMarcada
 {
-    string cpfPaciente;
-    string crmMedico;
+    int cpfPaciente;
+    int crmMedico;
     string data;
     string horario;
 };
@@ -58,7 +58,11 @@ void incluir_paciente(Paciente paciente[], indice idxPaciente[], int &cont);
 void incluir_medico(Medico medico[], indice idxMedico[], int &cont, Especializacao esp[], indice idxEsp[], int contEsp);
 
 int busca_binaria_Especializacao(indice idxEspecializacao[], int cod, int cont);
+int busca_binaria_Medico(indice idxMedico[], int cod, int cont);
 void buscar_medicoEsp(indice idxEsp[], Especializacao especializacao[], Medico medico[], int contEsp, int contMed);
+
+void agendar_Consulta(indice idxMed[], Medico medico[], int contMed, Paciente paciente[], ConsultaMarcada consulta[], indice idx[], int &cont);
+
 int main()
 {
     setlocale(LC_ALL, "");
@@ -121,6 +125,7 @@ int main()
 
         case 4:
             system("cls");
+            agendar_Consulta(idxMedico, medico, contMedico, consulta, idxConsulta, contConsulta);
             break;
 
         case 5:
@@ -235,6 +240,7 @@ void gerar_dados_medico(Medico medico[], indice idxMedico[], int &contMedico)
     medico[0].telefone = "1234554321";
     medico[0].codigoEspecializacao = 1;
     medico[0].valorConsulta = 100;
+    medico[0].status = true;
 
     medico[1].crm = 10;
     medico[1].nome = "Dr.Miguel";
@@ -243,6 +249,7 @@ void gerar_dados_medico(Medico medico[], indice idxMedico[], int &contMedico)
     medico[1].telefone = "0987654321";
     medico[1].codigoEspecializacao = 2;
     medico[1].valorConsulta = 200;
+    medico[1].status = true;
 
     medico[2].crm = 4;
     medico[2].nome = "Dra.Julia";
@@ -251,6 +258,7 @@ void gerar_dados_medico(Medico medico[], indice idxMedico[], int &contMedico)
     medico[2].telefone = "12344566";
     medico[2].codigoEspecializacao = 5;
     medico[2].valorConsulta = 500;
+    medico[2].status = true;
 
     // Incluindo na estrutura de indice
     idxMedico[0].codigo = 4;
@@ -400,6 +408,7 @@ void incluir_medico(Medico medico[], indice idxMedico[], int &cont, Especializac
     }
 }
 
+// Buscas binarias
 int busca_binaria_Especializacao(indice idxEspecializacao[], int cod, int cont)
 {
     int i = 0, f = cont;
@@ -416,8 +425,24 @@ int busca_binaria_Especializacao(indice idxEspecializacao[], int cod, int cont)
     else
         return -1;
 }
+int busca_binaria_Medico(indice idxMedico[], int cod, int cont)
+{
+    int i = 0, f = cont;
+    int m = (i + f) / 2;
+    for (; f >= i && cod != idxMedico[m].codigo; m = (i + f) / 2)
+    {
+        if (cod > idxMedico[m].codigo)
+            i = m + 1;
+        else
+            f = m - 1;
+    }
+    if (cod == idxMedico[m].codigo)
+        return idxMedico[m].ender;
+    else
+        return -1;
+}
 
-// 4 - Buscar Medico por Especialização
+// Consultas
 void buscar_medicoEsp(indice idxEsp[], Especializacao especializacao[], Medico medico[], int contEsp, int contMed)
 {
     int codEsp = 1;
@@ -450,6 +475,74 @@ void buscar_medicoEsp(indice idxEsp[], Especializacao especializacao[], Medico m
                     cout << " Nome: " << medico[end].nome << endl;
                     cout << " Valor da consulta: " << medico[end].valorConsulta << endl;
                 }
+            }
+            system("pause");
+            system("cls");
+        }
+    }
+}
+
+// Agendamentos
+void agendar_Consulta(indice idxMed[], Medico medico[], int contMed, ConsultaMarcada consulta[], indice idx[], int &cont)
+{
+    int cod = 1;
+    while (cod > 0)
+    {
+        cout << " Informe o CPF do Paciente: ";
+        cin >> cod;
+        if (cod > 0)
+        {
+            consulta[cont].cpfPaciente = cod;
+            cout << " Data: ";
+            cin >> consulta[cont].data;
+            cout << " Horário: ";
+            cin >> consulta[cont].horario;
+            cout << " CRM: ";
+            cin >> consulta[cont].crmMedico;
+            int endMed = busca_binaria_Medico(idxMed, consulta[cont].crmMedico, contMed);
+            while (endMed == -1)
+            {
+                cout << "\n\t ===== CRM nao encontrado =====" << endl;
+                cout << " CRM: ";
+                cin >> consulta[cont].crmMedico;
+                endMed = busca_binaria_Medico(idxMed, consulta[cont].crmMedico, contMed);
+            }
+            cout << "Médico: " << medico[endMed].nome << endl;
+            int i;
+            for (i = cont - 1; idx[i].codigo > cod; i--)
+            {
+                idx[i + 1].codigo = idx[i].codigo;
+                idx[i + 1].ender = idx[i].ender;
+            }
+            idx[i + 1].codigo = cod;
+            idx[i + 1].ender = cont;
+
+            cout << "\n\t ===== Agendamento Concluido com Sucesso ===== " << endl;
+            cont++;
+            system("pause");
+            system("cls");
+        }
+    }
+}
+
+void remover_medico(indice idxMed[], Medico medico[], int contMed)
+{
+    int cod = 1;
+    while (cod > 0)
+    {
+        cout << " Informe a CRM do Medico: ";
+        cin >> cod;
+        if (cod > 0)
+        {
+            int ender = busca_binaria_Medico(idxMed, cod, contMed);
+            if (ender != -1)
+            {
+                cout << " Desativando Medico: " << medico[ender].nome;
+                medico[ender].status = false;
+            }
+            else
+            {
+                cout << " Médico não encontrado...";
             }
             system("pause");
             system("cls");
