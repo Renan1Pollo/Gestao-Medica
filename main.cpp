@@ -583,7 +583,7 @@ void reorganizar_Medico(indice idxMed[], Medico medico[], int &cont)
     }
     cont = cont2;
 
-    cout << "\n Tabela Reorganizadacom sucesso" << endl;
+    cout << "\n Tabela Reorganizada com sucesso" << endl;
     system("pause");
     system("cls");
 }
